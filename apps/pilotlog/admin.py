@@ -1,13 +1,10 @@
 from django.contrib import admin
-from .models.aircraft import Aircraft
-from .models.flight import Flight
+from .models.dynamic_model import DynamicModel
 
-class AircraftAdmin(admin.ModelAdmin):
-    model = Aircraft
-
-class FlightAdmin(admin.ModelAdmin):
-    model = Flight
+class DynamicModelAdmin(admin.ModelAdmin):
+    model = DynamicModel
+    list_display = ['table', 'guid', 'user_id', '_modified']
+    search_fields = ['user_id', 'table', 'guid']
 
 
-admin.site.register(Aircraft, AircraftAdmin)
-admin.site.register(Flight, FlightAdmin)
+admin.site.register(DynamicModel, DynamicModelAdmin)
