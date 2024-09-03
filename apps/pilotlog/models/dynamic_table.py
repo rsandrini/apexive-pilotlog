@@ -2,7 +2,7 @@ from django.db import models
 from uuid import uuid4
 
 
-class DynamicModel(models.Model):
+class DynamicTable(models.Model):
     table = models.CharField(max_length=255)
     guid = models.CharField(max_length=255)
     user_id = models.IntegerField()

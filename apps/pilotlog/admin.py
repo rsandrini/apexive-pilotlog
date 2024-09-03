@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models.dynamic_model import DynamicModel
+from .models.dynamic_table import DynamicTable
 
-class DynamicModelAdmin(admin.ModelAdmin):
-    model = DynamicModel
+class DynamicTableAdmin(admin.ModelAdmin):
+    model = DynamicTable
     list_display = ['table', 'guid', 'user_id', '_modified']
     search_fields = ['user_id', 'table', 'guid']
 
 
-admin.site.register(DynamicModel, DynamicModelAdmin)
+admin.site.register(DynamicTable, DynamicTableAdmin)

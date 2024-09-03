@@ -1,3 +1,5 @@
 Django
 ipython
 pytest-django
+django-bulk-load
+psycopg2
