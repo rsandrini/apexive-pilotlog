@@ -1,5 +1,9 @@
+import logging
 import datetime
+import json
 from decimal import Decimal, InvalidOperation
+
+logger = logging.getLogger(__name__)
 
 
 def timestamp_to_year(time_string):
@@ -44,8 +48,27 @@ def convert_types(value, type_expected):
             pass
     return value
 
+
 def find_aircraft(aircraft_codes, aircraft_id):
-    for key, value in aircraft_codes.items():
-        if key == aircraft_id:
-            return value
-    return None
+    return aircraft_codes.get(aircraft_id, '')
+
+
+def write_csv_row(writer, headers, data):
+    """
+    Utility function to write headers and corresponding data rows to CSV.
+    """
+    if not data:
+        logger.warning("No data to write.")
+        return
+    writer.writerow(headers)
+    writer.writerow(key for key in data[0].keys())
+    for row in data:
+        writer.writerow(row.values())
+
+
+def load_mappings(mapping_file):
+    """
+    Load field mappings from a JSON or YAML file to allow future configurability.
+    """
+    with open(mapping_file) as f:
+        return json.load(f)
