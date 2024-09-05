@@ -16,7 +16,6 @@ from pathlib import Path
 
 # Build paths inside the project like this: DIRNAME / 'subdir'.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'apps'))
 
 # Quick-start development settings - unsuitable for production
@@ -75,7 +74,6 @@ WSGI_APPLICATION = 'apexive.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
