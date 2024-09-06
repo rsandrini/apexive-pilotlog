@@ -1,4 +1,14 @@
 def get_aircraft_mapping() -> (list, list):
+    """
+    Returns the mapping between the aircraft heads and the column names in the
+    PilotLog database.
+
+    Returns:
+        tuple: a tuple containing two elements:
+            1. a list of strings, which are the headers for the aircraft CSV file
+            2. a dictionary mapping each aircraft head to the column name in the
+               PilotLog database
+    """
     aircraft_heads = ['Text', 'Text', 'Text', 'YYYY', 'Text', 'Text', 'Text',
                       'Text', 'Text', 'Text', 'Boolean', 'Boolean',
                       'Boolean', 'Boolean']
@@ -22,7 +32,10 @@ def get_aircraft_mapping() -> (list, list):
     return aircraft_heads, aircraft_mapping
 
 def get_flights_mapping():
-
+    """
+    Returns the mapping between the flight heads and the column names in the
+    PilotLog database.
+    """
     flights_heads = ['Date', 'Text', 'Text', 'Text', 'Text', 'hhmm', 'hhmm',
                      'hhmm', 'hhmm', 'hhmm', 'hhmm', 'Decimal', 'Decimal',
                      'Decimal', 'Decimal', 'Decimal', 'Decimal', 'Decimal',
