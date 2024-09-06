@@ -11,12 +11,16 @@ The Pilot Log Management System is a Django 5.1 project designed to manage and m
 
 ## Project Structure
 
-The main file in this project is the `pilotlog/helpers/import_export.py` module.
-This module contains the `import_from_json` function, which imports pilot log data from a JSON file into the database, keep it normalized in the simplest way possible.
+The main file in this project is the [import_export.py](apps/pilotlog/helpers/import_export.py)  module.
+The module is responsible for importing and exporting data from and to the database, based on the ForeFlight Logbook format.
 
+In the folder [Data](Data), you will find the JSON files that will be imported and the CSV file that will be exported.
+
+To se more details about the requirements, please refer to the [Apexive django project](https://us.apexive.com/coding-test-assignments).
 
 ### Project Overview
-This project provides a reusable solution for importing and exporting data to and from the database in a Django application, based on the **ForeFlight Logbook** format. The code is structured to allow reusability across different implementations for importing JSON files and exporting CSV files.
+This project provides a reusable solution for importing and exporting data to and from the database in a Django application, based on the **ForeFlight Logbook** format. 
+The code is structured to allow reusability across different implementations for importing JSON files and exporting CSV files.
 
 Considering the requirements:
 
@@ -27,7 +31,13 @@ Considering the requirements:
     - Future Changes Consideration: Anticipate potential changes in the models and structure your code to accommodate such evolutions with minimal disruption.
 
 
-To address the requirements of reusability, data model design, and future adaptability while managing complexity, I opted for a flexible yet straightforward solution with the DynamicTable model. By leveraging a single DynamicTable model with a JSONField to store diverse and evolving attributes in the meta field, I balance the need for flexibility with minimal schema complexity. This approach allows for handling various data structures without frequent migrations, accommodating future changes more gracefully. Although this solution sacrifices some level of normalization and query performance compared to a more rigid schema, it simplifies maintenance and adapts well to evolving data needs. This choice reflects a pragmatic approach to managing data complexity, aligning with the goal of creating a maintainable and adaptable system.
+To address the requirements of reusability, data model design, and future adaptability while managing complexity, I opted for a flexible yet straightforward solution with the DynamicTable model. 
+
+By leveraging a single DynamicTable model with a JSONField to store diverse and evolving attributes in the meta field, I balance the need for flexibility with minimal schema complexity. 
+
+This approach allows for handling various data structures without frequent migrations, accommodating future changes more gracefully. Although this solution sacrifices some level of normalization and query performance compared to a more rigid schema, it simplifies maintenance and adapts well to evolving data needs. 
+
+This choice reflects a pragmatic approach to managing data complexity, aligning with the goal of creating a maintainable and adaptable system.
 
 ---
 
