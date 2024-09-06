@@ -18,6 +18,17 @@ This module contains the `import_from_json` function, which imports pilot log da
 ### Project Overview
 This project provides a reusable solution for importing and exporting data to and from the database in a Django application, based on the **ForeFlight Logbook** format. The code is structured to allow reusability across different implementations for importing JSON files and exporting CSV files.
 
+Considering the requirements:
+
+    - Reusability: Both the importer and exporter should be implemented as reusable modules.
+
+    - Data Model Design: The data model must adhere to DRY (Don't Repeat Yourself) principles and follow a normalized SQL ORM schema. Design with future adaptability in mind, avoiding hardcoding of names or rigid structures.
+
+    - Future Changes Consideration: Anticipate potential changes in the models and structure your code to accommodate such evolutions with minimal disruption.
+
+
+To address the requirements of reusability, data model design, and future adaptability while managing complexity, I opted for a flexible yet straightforward solution with the DynamicTable model. By leveraging a single DynamicTable model with a JSONField to store diverse and evolving attributes in the meta field, I balance the need for flexibility with minimal schema complexity. This approach allows for handling various data structures without frequent migrations, accommodating future changes more gracefully. Although this solution sacrifices some level of normalization and query performance compared to a more rigid schema, it simplifies maintenance and adapts well to evolving data needs. This choice reflects a pragmatic approach to managing data complexity, aligning with the goal of creating a maintainable and adaptable system.
+
 ---
 
 ### Prerequisites
