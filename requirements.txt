@@ -4,3 +4,4 @@ ipython
 pytest-django
 django-bulk-load
 psycopg2
+djangorestframework
