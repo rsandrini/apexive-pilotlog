@@ -3,11 +3,20 @@ import json
 import csv
 import logging
 from django_bulk_load import bulk_insert_models
-from pilotlog.models.dynamic_table import DynamicTable
+from pilotlog.models.aircraft import Aircraft
+from pilotlog.models.flight import Flight
+from pilotlog.models.image_pic import ImagePic
+from pilotlog.models.limit_rules import LimitRules
+from pilotlog.models.my_query import MyQuery
+from pilotlog.models.my_query_build import MyQueryBuild
+from pilotlog.models.pilot import Pilot
+from pilotlog.models.qualification import Qualification
+from pilotlog.models.setting_config import SettingConfig
 
 from .mappings import get_aircraft_mapping, get_flights_mapping
 from .utils import convert_types, write_csv_row
 from apexive.settings import BULK_INSERT_CHUNK_SIZE
+
 '''
     Import and Export ForeFlight and Logbook
     Based on ForeFlight: https://cloudfront.foreflight.com/docs/ff/16.2/ForeFlight%20Logbook.pdf
@@ -45,37 +54,124 @@ def import_data(file_path):
     """
     Import data from a file path into the database.
 
-    The function loads data from a file path into a JSON object, then
-    iterates over the data and creates a DynamicTable object for each entry.
-    The objects are then inserted into the database in chunks of size
-    BULK_INSERT_CHUNK_SIZE. If an object raises an exception, it is added
-    to the errors list and logged. The function finally logs the number of
-    failed records and the failed records themselves.
+    The function takes a file path as parameter, loads the data from it, and
+    imports it into the database using bulk inserts. If any errors occur during
+    the import, it logs the errors and continues with the next records.
 
     :param file_path: the file path to load the data from
-    :raises json.JSONDecodeError: if the file path does not contain a valid JSON object
+    :return: None
+    :raises Exception: if any error occurs during the import
     """
     data = load_data(file_path)
     if not data:
         return
 
-    objs = []
-    errors = []
     batch_size = BULK_INSERT_CHUNK_SIZE
+    errors = []
 
+    # Dictionary to hold objects for each table
+    objects_map = {
+        'Aircraft': [],
+        'Flight': [],
+        'ImagePic': [],
+        'LimitRules': [],
+        'MyQuery': [],
+        'MyQueryBuild': [],
+        'SettingConfig': [],
+        'Qualification': [],
+        'Pilot': [],
+    }
+
+    def insert_batch(model_name, objects):
+        """
+        Helper function to bulk insert objects and reset the list.
+
+        :param model_name: the name of the model to insert
+        :param objects: the list of objects to insert
+        """
+        if objects:
+            bulk_insert_models(models=objects, ignore_conflicts=model_name != 'Aircraft')
+            objects_map[model_name] = []  # Reset the list
+
+    def process_aircraft(d):
+        """
+        Process an Aircraft record from the loaded data.
+
+        :param d: a dictionary representing the Aircraft record
+        """
+        aircraft = d.copy()
+        aircraft.pop('table')
+        objects_map['Aircraft'].append(Aircraft(**aircraft))
+        if len(objects_map['Aircraft']) >= batch_size:
+            insert_batch('Aircraft', objects_map['Aircraft'])
+
+    def process_flight(d):
+        """
+        Process a Flight record from the loaded data.
+
+        :param d: a dictionary representing the Flight record
+        """
+        d.pop('table')
+        try:
+            aircraft = Aircraft.objects.get(guid=d['meta']['AircraftCode'])
+            objects_map['Flight'].append(Flight(aircraft=aircraft, **d))
+            if len(objects_map['Flight']) >= batch_size:
+                insert_batch('Flight', objects_map['Flight'])
+        except Aircraft.DoesNotExist as e:
+            logger.error(f"Aircraft not found for Flight: {d['meta']['AircraftCode']} - {e}")
+            errors.append(d)
+
+    def process_generic(table_name, model_class, d):
+        """
+        Process a generic record from the loaded data.
+        Generic records are any record that is not an Aircraft or Flight.
+
+        :param table_name: the name of the table to insert into
+        :param model_class: the model class to use for the insert
+        :param d: a dictionary representing the record
+        """
+        d.pop('table')
+        objects_map[table_name].append(model_class(**d))
+        if len(objects_map[table_name]) >= batch_size:
+            insert_batch(table_name, objects_map[table_name])
+
+    processing_map = {
+        'Aircraft': process_aircraft,
+        'Flight': process_flight,
+        'imagepic': lambda d: process_generic('ImagePic', ImagePic, d),
+        'LimitRules': lambda d: process_generic('LimitRules', LimitRules, d),
+        'myQuery': lambda d: process_generic('MyQuery', MyQuery, d),
+        'myQueryBuild': lambda d: process_generic('MyQueryBuild', MyQueryBuild, d),
+        'SettingConfig': lambda d: process_generic('SettingConfig', SettingConfig, d),
+        'Qualification': lambda d: process_generic('Qualification', Qualification, d),
+        'Pilot': lambda d: process_generic('Pilot', Pilot, d),
+    }
+
+    # Process Aircrafts first
     for d in data:
         try:
-            objs.append(DynamicTable(**d))
-            if len(objs) >= batch_size:  # Insert in batches
-                bulk_insert_models(models=objs, ignore_conflicts=True)
-                objs = []  # Reset the batch
+            if d['table'] == 'Aircraft':
+                processing_map['Aircraft'](d)
+        except Exception as e:
+            logger.error(f"Exception loading Aircraft: {d} - {e}")
+            errors.append(d)
+
+    # Insert remaining Aircrafts if any
+    insert_batch('Aircraft', objects_map['Aircraft'])
+
+    # Process the rest (Flights, ImagePics, LimitRules, MyQueries)
+    for d in data:
+        try:
+            table = d['table']
+            if table != 'Aircraft' and table in processing_map:
+                processing_map[table](d)
         except Exception as e:
             logger.error(f"Exception loading: {d} - {e}")
             errors.append(d)
 
-    # Final batch insertion if there's remaining data
-    if objs:
-        bulk_insert_models(models=objs, ignore_conflicts=True)
+    # Insert remaining data
+    for table, objs in objects_map.items():
+        insert_batch(table, objs)
 
     logger.info(f"Finished importing with {len(errors)} failed records.")
 
